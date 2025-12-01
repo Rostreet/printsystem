@@ -1,0 +1,15 @@
+.parameter-list {
+  width: 100%;
+}
+
+.parameter-list .ant-card {
+  border-radius: 8px;
+}
+
+.parameter-list .ant-table {
+  margin-top: 16px;
+}
+
+.parameter-list .ant-form-item {
+  margin-bottom: 16px;
+}

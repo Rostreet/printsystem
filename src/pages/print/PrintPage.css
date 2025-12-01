@@ -1,0 +1,16 @@
+.print-page {
+  width: 100%;
+}
+
+.print-page .ant-steps {
+  max-width: 800px;
+  margin: 0 auto 32px;
+}
+
+.print-page .ant-card-body {
+  padding: 24px;
+}
+
+.print-page .ant-descriptions {
+  background: #fafafa;
+}
