@@ -28,7 +28,6 @@ import {
 } from '../../api/print';
 import { VIN_LENGTH, VSN_LENGTH, VEHICLE_TYPE_NAMES } from '../../constants';
 import { validateVIN, validateVSN } from '../../utils';
-import './PrintPage.css';
 
 const PrintPage = () => {
   const [currentStep, setCurrentStep] = useState(0);

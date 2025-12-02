@@ -1,0 +1,151 @@
+/**
+ * 登录页面样式
+ * 对应组件: Login.jsx
+ */
+
+/* 淡入上移动画 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 登录容器 - 全屏居中布局 */
+.loginContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(to bottom right, var(--color-bg-light), #e8e7e4);
+  padding: var(--spacing-lg);
+}
+
+/* 登录卡片 */
+.loginCard {
+  width: 100%;
+  max-width: 480px;
+  box-shadow: var(--shadow-lg);
+  border-radius: var(--border-radius-xl);
+  overflow: hidden;
+  animation: fadeInUp 0.6s ease-out;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-base);
+}
+
+/* 卡片头部样式覆盖 */
+.loginCard :global(.ant-card-head) {
+  background: var(--color-bg-base);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--spacing-xl);
+  height: var(--spacing-xxxl);
+}
+
+.loginCard :global(.ant-card-head-title) {
+  text-align: center;
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+}
+
+/* 卡片主体样式覆盖 */
+.loginCard :global(.ant-card-body) {
+  padding: var(--spacing-xl);
+}
+
+/* 登录表单 */
+.loginForm :global(.ant-form-item) {
+  margin-bottom: var(--spacing-lg);
+}
+
+.loginForm :global(.ant-form-item-label > label) {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+/* 输入框样式 */
+.loginForm :global(.ant-input),
+.loginForm :global(.ant-input-affix-wrapper) {
+  height: 44px;
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-base);
+  transition: all var(--transition-base) ease-out;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-base);
+  display: flex;
+  align-items: center;
+}
+
+.loginForm :global(.ant-input-affix-wrapper > input.ant-input) {
+  height: auto;
+  line-height: normal;
+}
+
+.loginForm :global(.ant-input) {
+  height: 44px;
+  line-height: normal;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.loginForm :global(.ant-input:hover),
+.loginForm :global(.ant-input-affix-wrapper:hover) {
+  border-color: var(--color-text-tertiary);
+  background: var(--color-bg-base);
+}
+
+.loginForm :global(.ant-input:focus),
+.loginForm :global(.ant-input-focused),
+.loginForm :global(.ant-input-affix-wrapper-focused) {
+  border-color: var(--color-primary);
+  background: var(--color-bg-base);
+}
+
+/* 按钮样式 */
+.loginForm :global(.ant-btn) {
+  height: 44px;
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  transition: all var(--transition-base) ease-out;
+}
+
+.loginForm :global(.ant-btn-primary) {
+  background: var(--color-primary);
+  border: 0;
+}
+
+.loginForm :global(.ant-btn-primary:hover) {
+  background: var(--color-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-hover);
+}
+
+.loginForm :global(.ant-btn-primary:active) {
+  transform: translateY(0);
+}
+
+/* 响应式设计 - 手机屏幕 */
+@media (max-width: 767px) {
+  .loginCard {
+    max-width: 360px;
+  }
+
+  .loginCard :global(.ant-card-head) {
+    padding: var(--spacing-lg);
+  }
+
+  .loginCard :global(.ant-card-body) {
+    padding: var(--spacing-lg);
+  }
+
+  .loginCard :global(.ant-card-head-title) {
+    font-size: var(--font-size-h3);
+  }
+}

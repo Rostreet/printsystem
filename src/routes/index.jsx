@@ -1,19 +1,19 @@
 /**
  * 路由配置
  */
-import { createBrowserRouter, Navigate } from 'react-router-dom';
-import MainLayout from '../components/layout/MainLayout';
-import Login from '../pages/auth/Login';
-import ProtectedRoute from '../components/common/ProtectedRoute';
+import { createBrowserRouter, Navigate } from "react-router-dom";
+import MainLayout from "../components/layout/MainLayout";
+import Login from "../pages/auth/Login";
+import ProtectedRoute from "../components/common/ProtectedRoute";
 
 // 创建路由
 const router = createBrowserRouter([
   {
-    path: '/login',
+    path: "/login",
     element: <Login />,
   },
   {
-    path: '/',
+    path: "/",
     element: (
       <ProtectedRoute>
         <MainLayout />
@@ -25,32 +25,24 @@ const router = createBrowserRouter([
         element: <Navigate to="/parameter" replace />,
       },
       {
-        path: 'parameter',
-        lazy: () => import('../pages/parameter/ParameterList'),
+        path: "parameter",
+        lazy: () => import("../pages/parameter/ParameterList"),
       },
       {
-        path: 'order',
-        lazy: () => import('../pages/order/OrderList'),
+        path: "order",
+        lazy: () => import("../pages/order/OrderList"),
       },
       {
-        path: 'print',
-        lazy: () => import('../pages/print/PrintPage'),
+        path: "chassis",
+        lazy: () => import("../pages/chassis/ChassisList"),
       },
       {
-        path: 'reprint',
-        lazy: () => import('../pages/reprint/ReprintPage'),
+        path: "print",
+        lazy: () => import("../pages/print/PrintPage"),
       },
       {
-        path: 'chassis',
-        lazy: () => import('../pages/chassis/ChassisList'),
-      },
-      {
-        path: 'reports',
-        lazy: () => import('../pages/reports/ReportsPage'),
-      },
-      {
-        path: 'operator',
-        lazy: () => import('../pages/operator/OperatorList'),
+        path: "reports",
+        lazy: () => import("../pages/reports/ReportsPage"),
       },
     ],
   },

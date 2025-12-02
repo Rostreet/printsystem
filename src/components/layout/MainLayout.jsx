@@ -1,8 +1,7 @@
 /**
  * 主布局组件
  */
-import { useState } from 'react';
-import { Layout, Menu, Avatar, Dropdown, message } from 'antd';
+import { Layout, Menu, Avatar, Dropdown, message } from "antd";
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -16,74 +15,66 @@ import {
   ToolOutlined,
   BarChartOutlined,
   TeamOutlined,
-} from '@ant-design/icons';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { logout } from '../../api/auth';
-import { storage } from '../../utils';
-import { ROLE_NAMES } from '../../constants';
-import './MainLayout.css';
+  CarOutlined,
+} from "@ant-design/icons";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { logout } from "../../api/auth";
+import useUserStore from "../../store/userStore";
+import useAppStore from "../../store/appStore";
+import { ROLE_NAMES } from "../../constants";
+import styles from "./MainLayout.module.css";
 
 const { Header, Sider, Content } = Layout;
 
 const MainLayout = () => {
-  const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const userInfo = storage.getUserInfo();
+  const { userInfo, logout: logoutUser } = useUserStore();
+  const { sidebarCollapsed, toggleSidebar } = useAppStore();
 
   // 菜单项配置
   const menuItems = [
     {
-      key: '/parameter',
+      key: "/parameter",
       icon: <DatabaseOutlined />,
-      label: '参数表维护',
+      label: "入库车列表",
     },
     {
-      key: '/order',
+      key: "/order",
       icon: <ShoppingOutlined />,
-      label: '订单车维护',
+      label: "订单车列表",
     },
     {
-      key: '/print',
-      icon: <PrinterOutlined />,
-      label: '合格证打印',
-    },
-    {
-      key: '/reprint',
-      icon: <ReloadOutlined />,
-      label: '合格证补打',
-    },
-    {
-      key: '/chassis',
+      key: "/chassis",
       icon: <ToolOutlined />,
-      label: '二类底盘维护',
+      label: "二类底盘列表",
     },
     {
-      key: '/reports',
+      key: "/print",
+      icon: <PrinterOutlined />,
+      label: "合格证打印",
+    },
+    {
+      key: "/reports",
       icon: <BarChartOutlined />,
-      label: '统计报表',
-    },
-    {
-      key: '/operator',
-      icon: <TeamOutlined />,
-      label: '操作员管理',
+      label: "统计报表",
     },
   ];
 
   // 用户下拉菜单
   const userMenuItems = [
     {
-      key: 'changePassword',
+      key: "changePassword",
       icon: <LockOutlined />,
-      label: '修改密码',
+      label: "修改密码",
     },
     {
-      type: 'divider',
+      type: "divider",
     },
     {
-      key: 'logout',
+      key: "logout",
       icon: <LogoutOutlined />,
-      label: '退出登录',
+      label: "退出登录",
     },
   ];
 
@@ -94,47 +85,53 @@ const MainLayout = () => {
 
   // 处理用户菜单点击
   const handleUserMenuClick = async ({ key }) => {
-    if (key === 'logout') {
+    if (key === "logout") {
       try {
         await logout();
-        storage.clear();
-        message.success('退出登录成功');
-        navigate('/login');
+        logoutUser();
+        message.success("退出登录成功");
+        navigate("/login");
       } catch {
         // 错误已在拦截器处理
-        storage.clear();
-        navigate('/login');
+        logoutUser();
+        navigate("/login");
       }
-    } else if (key === 'changePassword') {
+    } else if (key === "changePassword") {
       // TODO: 打开修改密码对话框
-      message.info('修改密码功能开发中');
+      message.info("修改密码功能开发中");
     }
   };
 
   return (
-    <Layout className="main-layout">
-      <Sider trigger={null} collapsible collapsed={collapsed}>
-        <div className="logo">
-          {collapsed ? '合格证' : '合格证打印系统'}
+    <Layout className={styles.mainLayout}>
+      <Sider
+        trigger={null}
+        collapsible
+        collapsed={sidebarCollapsed}
+        className={styles.sider}
+      >
+        <div className={styles.siderTitle}>
+          {sidebarCollapsed ? <CarOutlined /> : "合格证打印系统"}
         </div>
         <Menu
-          theme="dark"
+          theme="light"
           mode="inline"
           selectedKeys={[location.pathname]}
           items={menuItems}
           onClick={handleMenuClick}
+          className={styles.menu}
         />
       </Sider>
       <Layout>
-        <Header className="site-layout-header">
-          <div className="header-left">
-            {collapsed ? (
-              <MenuUnfoldOutlined onClick={() => setCollapsed(false)} />
+        <Header className={styles.header}>
+          <div className={styles.headerToggle}>
+            {sidebarCollapsed ? (
+              <MenuUnfoldOutlined onClick={toggleSidebar} />
             ) : (
-              <MenuFoldOutlined onClick={() => setCollapsed(true)} />
+              <MenuFoldOutlined onClick={toggleSidebar} />
             )}
           </div>
-          <div className="header-right">
+          <div className={styles.headerUser}>
             <Dropdown
               menu={{
                 items: userMenuItems,
@@ -142,17 +139,19 @@ const MainLayout = () => {
               }}
               placement="bottomRight"
             >
-              <div className="user-info">
+              <div className={styles.userDropdown}>
                 <Avatar icon={<UserOutlined />} />
-                <span className="user-name">{userInfo?.name || '用户'}</span>
-                <span className="user-role">
-                  {ROLE_NAMES[userInfo?.role] || '操作员'}
+                <span className={styles.userName}>
+                  {userInfo?.name || "用户"}
+                </span>
+                <span className={styles.userRole}>
+                  {ROLE_NAMES[userInfo?.role] || "操作员"}
                 </span>
               </div>
             </Dropdown>
           </div>
         </Header>
-        <Content className="site-layout-content">
+        <Content className={styles.content}>
           <Outlet />
         </Content>
       </Layout>

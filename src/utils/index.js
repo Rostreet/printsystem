@@ -1,49 +1,6 @@
 /**
  * 工具函数集合
  */
-import { STORAGE_KEYS } from '../constants';
-
-/**
- * 本地存储工具
- */
-export const storage = {
-  // 获取token
-  getToken() {
-    return localStorage.getItem(STORAGE_KEYS.TOKEN);
-  },
-
-  // 设置token
-  setToken(token) {
-    localStorage.setItem(STORAGE_KEYS.TOKEN, token);
-  },
-
-  // 移除token
-  removeToken() {
-    localStorage.removeItem(STORAGE_KEYS.TOKEN);
-  },
-
-  // 获取用户信息
-  getUserInfo() {
-    const userInfo = localStorage.getItem(STORAGE_KEYS.USER_INFO);
-    return userInfo ? JSON.parse(userInfo) : null;
-  },
-
-  // 设置用户信息
-  setUserInfo(userInfo) {
-    localStorage.setItem(STORAGE_KEYS.USER_INFO, JSON.stringify(userInfo));
-  },
-
-  // 移除用户信息
-  removeUserInfo() {
-    localStorage.removeItem(STORAGE_KEYS.USER_INFO);
-  },
-
-  // 清空所有
-  clear() {
-    localStorage.removeItem(STORAGE_KEYS.TOKEN);
-    localStorage.removeItem(STORAGE_KEYS.USER_INFO);
-  },
-};
 
 /**
  * VIN码校验
@@ -51,7 +8,7 @@ export const storage = {
  * @returns {boolean}
  */
 export const validateVIN = (vin) => {
-  if (!vin || typeof vin !== 'string') return false;
+  if (!vin || typeof vin !== "string") return false;
   return /^[A-HJ-NPR-Z0-9]{17}$/.test(vin);
 };
 
@@ -61,7 +18,7 @@ export const validateVIN = (vin) => {
  * @returns {boolean}
  */
 export const validateVSN = (vsn) => {
-  if (!vsn || typeof vsn !== 'string') return false;
+  if (!vsn || typeof vsn !== "string") return false;
   return /^[A-Z0-9]{13}$/.test(vsn);
 };
 
@@ -71,7 +28,7 @@ export const validateVSN = (vsn) => {
  * @returns {boolean}
  */
 export const validateCertificateNo = (certificateNo) => {
-  if (!certificateNo || typeof certificateNo !== 'string') return false;
+  if (!certificateNo || typeof certificateNo !== "string") return false;
   return /^[A-Z0-9]{14}$/.test(certificateNo);
 };
 
@@ -81,24 +38,24 @@ export const validateCertificateNo = (certificateNo) => {
  * @param {string} format - 格式，默认 YYYY-MM-DD HH:mm:ss
  * @returns {string}
  */
-export const formatDateTime = (date, format = 'YYYY-MM-DD HH:mm:ss') => {
-  if (!date) return '';
+export const formatDateTime = (date, format = "YYYY-MM-DD HH:mm:ss") => {
+  if (!date) return "";
   const d = new Date(date);
-  
+
   const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  const hours = String(d.getHours()).padStart(2, '0');
-  const minutes = String(d.getMinutes()).padStart(2, '0');
-  const seconds = String(d.getSeconds()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const hours = String(d.getHours()).padStart(2, "0");
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+  const seconds = String(d.getSeconds()).padStart(2, "0");
 
   return format
-    .replace('YYYY', year)
-    .replace('MM', month)
-    .replace('DD', day)
-    .replace('HH', hours)
-    .replace('mm', minutes)
-    .replace('ss', seconds);
+    .replace("YYYY", year)
+    .replace("MM", month)
+    .replace("DD", day)
+    .replace("HH", hours)
+    .replace("mm", minutes)
+    .replace("ss", seconds);
 };
 
 /**
@@ -108,7 +65,7 @@ export const formatDateTime = (date, format = 'YYYY-MM-DD HH:mm:ss') => {
  */
 export const downloadFile = (blob, filename) => {
   const url = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
+  const link = document.createElement("a");
   link.href = url;
   link.download = filename;
   document.body.appendChild(link);
@@ -132,7 +89,7 @@ export const exportExcel = (blob, filename) => {
  * @returns {string}
  */
 export const getVINPrefix = (vin) => {
-  if (!vin || vin.length < 8) return '';
+  if (!vin || vin.length < 8) return "";
   return vin.substring(0, 8);
 };
 
@@ -142,7 +99,7 @@ export const getVINPrefix = (vin) => {
  * @returns {string}
  */
 export const getVSNPrefix = (vsn) => {
-  if (!vsn || vsn.length < 2) return '';
+  if (!vsn || vsn.length < 2) return "";
   return vsn.substring(0, 2);
 };
 
@@ -186,11 +143,11 @@ export const throttle = (fn, delay = 300) => {
  * @returns {any}
  */
 export const deepClone = (obj) => {
-  if (obj === null || typeof obj !== 'object') return obj;
+  if (obj === null || typeof obj !== "object") return obj;
   if (obj instanceof Date) return new Date(obj);
   if (obj instanceof RegExp) return new RegExp(obj);
-  if (obj instanceof Array) return obj.map(item => deepClone(item));
-  
+  if (obj instanceof Array) return obj.map((item) => deepClone(item));
+
   const cloneObj = {};
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {

@@ -1,16 +1,16 @@
 /**
  * 路由守卫组件
  */
-import { Navigate } from 'react-router-dom';
-import { storage } from '../../utils';
+import { Navigate } from "react-router-dom";
+import useUserStore from "../../store/userStore";
 
 const ProtectedRoute = ({ children }) => {
-  const token = storage.getToken();
-  
-  if (!token) {
+  const { isAuthenticated } = useUserStore();
+
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
-  
+
   return children;
 };
 
