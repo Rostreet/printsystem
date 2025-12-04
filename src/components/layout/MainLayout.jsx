@@ -1,7 +1,7 @@
 /**
  * 主布局组件
  */
-import { Layout, Menu, Avatar, Dropdown, message } from "antd";
+import { Layout, Menu, Avatar, Dropdown, message, Modal } from "antd";
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -14,9 +14,11 @@ import {
   ToolOutlined,
   BarChartOutlined,
   CarOutlined,
+  CloudDownloadOutlined,
 } from "@ant-design/icons";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { logout } from "../../api/auth";
+import { exportDatabase } from "../../api/backup";
 import useUserStore from "../../store/userStore";
 import useAppStore from "../../store/appStore";
 import { ROLE_NAMES } from "../../constants";
@@ -67,6 +69,11 @@ const MainLayout = () => {
   // 用户下拉菜单
   const userMenuItems = [
     {
+      key: "backup",
+      icon: <CloudDownloadOutlined />,
+      label: "数据备份",
+    },
+    {
       key: "logout",
       icon: <LogoutOutlined />,
       label: "退出登录",
@@ -80,7 +87,27 @@ const MainLayout = () => {
 
   // 处理用户菜单点击
   const handleUserMenuClick = async ({ key }) => {
-    if (key === "logout") {
+    if (key === "backup") {
+      Modal.confirm({
+        title: "数据备份",
+        content: "确定要备份数据吗？备份将在后端服务器上生成。",
+        okText: "确定",
+        cancelText: "取消",
+        onOk: async () => {
+          try {
+            const result = await exportDatabase();
+            if (result && result.success) {
+              message.success("数据备份成功！文件已开始下载。");
+            } else {
+              message.error("数据备份失败，请稍后重试。");
+            }
+          } catch (error) {
+            console.error("数据备份错误:", error);
+            message.error("数据备份失败，请稍后重试。");
+          }
+        },
+      });
+    } else if (key === "logout") {
       try {
         await logout();
         logoutUser();

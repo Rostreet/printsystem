@@ -35,7 +35,7 @@ const formatParams = (params) => {
   if (!params) return "";
   return Object.values(params)
     .filter((v) => v !== undefined && v !== null)
-    .join("/");
+    .join("&");
 };
 
 /**
@@ -57,9 +57,18 @@ const requestInterceptor = (config) => {
 /**
  * 响应拦截器 - 统一处理响应数据
  * @param {Response} response - Fetch 响应对象
+ * @param {Object} config - 请求配置
  * @returns {Promise} 处理后的数据
  */
-const responseInterceptor = async (response) => {
+const responseInterceptor = async (response, config = {}) => {
+  // 如果指定了responseType为blob，直接返回blob数据
+  if (config.responseType === "blob") {
+    if (!response.ok) {
+      throw new Error(`HTTP Error: ${response.status}`);
+    }
+    return await response.blob();
+  }
+
   // 解析 JSON
   let data;
   try {
@@ -183,7 +192,7 @@ const fetchWrapper = async (url, options = {}) => {
     clearTimeout(timeoutId);
 
     // 响应拦截
-    return await responseInterceptor(response);
+    return await responseInterceptor(response, config);
   } catch (error) {
     // 清除超时定时器
     clearTimeout(timeoutId);

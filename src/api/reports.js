@@ -18,45 +18,45 @@ export const getVehiclePrintHistory = (params) => {
 /**
  * 根据时间段查询订单车修改信息
  * @param {Object} params - 查询参数
- * @param {string} params.startTime - 开始时间
- * @param {string} params.endTime - 结束时间
+ * @param {string} params.start - 开始时间
+ * @param {string} params.end - 结束时间
  * @returns {Promise}
  */
 export const getOrderModifyInfo = (params) => {
-  // Custom path parameter format: /start&end
-  const { start, end } = params;
-  return get(`/api/report/order-modify/${start}&${end}`, {});
+  return get("/api/report/order-modify", params);
 };
 
 /**
  * 根据时间段统计合格证数量
  * @param {Object} params - 查询参数
- * @param {string} params.startTime - 开始时间
- * @param {string} params.endTime - 结束时间
+ * @param {string} params.start - 开始时间
+ * @param {string} params.end - 结束时间
  * @returns {Promise}
  */
 export const getCertificateCount = (params) => {
-  return get("/report/certificate-count", params);
+  return get("/api/report/cert-distinct-count", params);
 };
 
 /**
  * 根据操作员和时间段查询合格证打印数量
  * @param {Object} params - 查询参数
- * @param {string} params.operatorId - 操作员ID
- * @param {string} params.startTime - 开始时间
- * @param {string} params.endTime - 结束时间
+ * @param {string} params.user - 操作员用户名
+ * @param {string} params.start - 开始时间
+ * @param {string} params.end - 结束时间
  * @returns {Promise}
  */
 export const getOperatorPrintCount = (params) => {
-  return get("/report/operator-print-count", params);
+  // 使用路径参数传递user，查询参数传递start和end
+  const { user, ...queryParams } = params;
+  return get(`/api/report/cert-total/${user}`, queryParams);
 };
 
 /**
  * 根据操作员和时间段查询合格证补打数量
  * @param {Object} params - 查询参数
  * @param {string} params.operatorId - 操作员ID
- * @param {string} params.startTime - 开始时间
- * @param {string} params.endTime - 结束时间
+ * @param {string} params.start - 开始时间
+ * @param {string} params.end - 结束时间
  * @returns {Promise}
  */
 export const getOperatorReprintCount = (params) => {
@@ -69,7 +69,7 @@ export const getOperatorReprintCount = (params) => {
  * @returns {Promise}
  */
 export const getCertificateInfo = (certificateNo) => {
-  return get("/report/certificate-info", { certificateNo });
+  return get(`/api/report/cert/${certificateNo}`);
 };
 
 /**

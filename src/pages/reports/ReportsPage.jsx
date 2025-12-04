@@ -18,7 +18,6 @@ import {
   getOrderModifyInfo,
   getCertificateCount,
   getOperatorPrintCount,
-  getOperatorReprintCount,
   getCertificateInfo,
 } from "../../api/reports";
 import { PRINT_TYPE_NAMES } from "../../constants";
@@ -30,6 +29,8 @@ const ReportsPage = () => {
   const [activeTab, setActiveTab] = useState("1");
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
+  const [certificateCount, setCertificateCount] = useState(0);
+  const [printCount, setPrintCount] = useState(0);
   const [form] = Form.useForm();
 
   // 报表1：车辆打印历史查询
@@ -54,9 +55,11 @@ const ReportsPage = () => {
         end: values.dateRange[1].format("YYYY-MM-DD HH:mm:ss"),
       };
       const response = await getOrderModifyInfo(params);
+      // 根据接口返回的数据格式直接设置数据源
       setDataSource(response || []);
-    } catch {
-      // 错误已处理
+    } catch (error) {
+      console.error("查询订单车修改信息失败:", error);
+      setDataSource([]);
     } finally {
       setLoading(false);
     }
@@ -67,13 +70,15 @@ const ReportsPage = () => {
     try {
       setLoading(true);
       const params = {
-        startTime: values.dateRange[0].format("YYYY-MM-DD"),
-        endTime: values.dateRange[1].format("YYYY-MM-DD"),
+        start: values.dateRange[0].format("YYYY-MM-DD HH:mm:ss"),
+        end: values.dateRange[1].format("YYYY-MM-DD HH:mm:ss"),
       };
       const response = await getCertificateCount(params);
-      setDataSource(response.data || []);
-    } catch {
-      // 错误已处理
+      // 直接设置数量值，不需要数组
+      setCertificateCount(response || 0);
+    } catch (error) {
+      console.error("查询合格证数量失败:", error);
+      setCertificateCount(0);
     } finally {
       setLoading(false);
     }
@@ -84,45 +89,32 @@ const ReportsPage = () => {
     try {
       setLoading(true);
       const params = {
-        operatorId: values.operatorId,
-        startTime: values.dateRange[0].format("YYYY-MM-DD"),
-        endTime: values.dateRange[1].format("YYYY-MM-DD"),
+        user: values.operatorId,
+        start: values.dateRange[0].format("YYYY-MM-DD HH:mm:ss"),
+        end: values.dateRange[1].format("YYYY-MM-DD HH:mm:ss"),
       };
       const response = await getOperatorPrintCount(params);
-      setDataSource(response.data || []);
-    } catch {
-      // 错误已处理
+      // 直接设置数量值，不需要数组
+      setPrintCount(response || 0);
+    } catch (error) {
+      console.error("查询操作员打印数量失败:", error);
+      // 直接设置数量值，不需要数组
+      setPrintCount(0);
     } finally {
       setLoading(false);
     }
   };
 
-  // 报表5：操作员补打数量
-  const handleOperatorReprintSearch = async (values) => {
-    try {
-      setLoading(true);
-      const params = {
-        operatorId: values.operatorId,
-        startTime: values.dateRange[0].format("YYYY-MM-DD"),
-        endTime: values.dateRange[1].format("YYYY-MM-DD"),
-      };
-      const response = await getOperatorReprintCount(params);
-      setDataSource(response.data || []);
-    } catch {
-      // 错误已处理
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 报表6：合格证编号查询
+  // 报表5：合格证编号查询
   const handleCertificateInfoSearch = async (values) => {
     try {
       setLoading(true);
       const response = await getCertificateInfo(values.certificateNo);
-      setDataSource(response.data ? [response.data] : []);
-    } catch {
-      // 错误已处理
+      // 根据API返回的数据格式，直接设置数据源
+      setDataSource(response ? [response] : []);
+    } catch (error) {
+      console.error("查询合格证信息失败:", error);
+      setDataSource([]);
     } finally {
       setLoading(false);
     }
@@ -223,6 +215,17 @@ const ReportsPage = () => {
           key: "manufactureDate",
         },
         { title: "VSN", dataIndex: "vsnCode", key: "vsnCode" },
+        {
+          title: "类型",
+          dataIndex: "type",
+          key: "type",
+          render: (value) => {
+            const typeMap = {
+              order: "订单车",
+            };
+            return typeMap[value] || value;
+          },
+        },
         { title: "轮胎数", dataIndex: "tireCount", key: "tireCount" },
         { title: "轮胎规格", dataIndex: "tireSpec", key: "tireSpec" },
         {
@@ -234,9 +237,20 @@ const ReportsPage = () => {
           title: "载客人数",
           dataIndex: "ratedPassengerCapacity",
           key: "ratedPassengerCapacity",
+          render: (value) => value || "-",
         },
-        { title: "总质量", dataIndex: "totalMass", key: "totalMass" },
-        { title: "整备质量", dataIndex: "curbWeight", key: "curbWeight" },
+        {
+          title: "总质量",
+          dataIndex: "totalMass",
+          key: "totalMass",
+          render: (value) => (value ? value + " kg" : "-"),
+        },
+        {
+          title: "整备质量",
+          dataIndex: "curbWeight",
+          key: "curbWeight",
+          render: (value) => (value ? value + " kg" : "-"),
+        },
       ],
     },
     {
@@ -252,7 +266,7 @@ const ReportsPage = () => {
             name="dateRange"
             rules={[{ required: true, message: "请选择时间范围" }]}
           >
-            <RangePicker />
+            <RangePicker showTime />
           </Form.Item>
           <Form.Item>
             <Space>
@@ -267,21 +281,12 @@ const ReportsPage = () => {
           </Form.Item>
         </Form>
       ),
-      columns: [
-        {
-          title: "打印时间",
-          dataIndex: "printTime",
-          key: "printTime",
-          render: (value) => formatDateTime(value),
-        },
-        { title: "合格证号", dataIndex: "certificateNo", key: "certificateNo" },
-        { title: "品种代码", dataIndex: "modelCode", key: "modelCode" },
-        { title: "VIN", dataIndex: "vin", key: "vin" },
-      ],
+      // 不需要表格列定义，只显示数量
+      columns: [],
     },
     {
       key: "4",
-      label: "操作员正常打印数量",
+      label: "操作员打印数量",
       form: (
         <Form form={form} layout="inline" onFinish={handleOperatorPrintSearch}>
           <Form.Item
@@ -294,7 +299,7 @@ const ReportsPage = () => {
             name="dateRange"
             rules={[{ required: true, message: "请选择时间范围" }]}
           >
-            <RangePicker />
+            <RangePicker showTime />
           </Form.Item>
           <Form.Item>
             <Space>
@@ -309,80 +314,10 @@ const ReportsPage = () => {
           </Form.Item>
         </Form>
       ),
-      columns: [
-        { title: "操作员姓名", dataIndex: "operatorName", key: "operatorName" },
-        {
-          title: "打印时间",
-          dataIndex: "printTime",
-          key: "printTime",
-          render: (value) => formatDateTime(value),
-        },
-        { title: "合格证号", dataIndex: "certificateNo", key: "certificateNo" },
-        { title: "品种代码", dataIndex: "modelCode", key: "modelCode" },
-        { title: "VIN", dataIndex: "vin", key: "vin" },
-        {
-          title: "打印状态",
-          dataIndex: "printType",
-          key: "printType",
-          render: (value) => PRINT_TYPE_NAMES[value] || value,
-        },
-      ],
+      columns: [],
     },
     {
       key: "5",
-      label: "操作员非正常打印数量",
-      form: (
-        <Form
-          form={form}
-          layout="inline"
-          onFinish={handleOperatorReprintSearch}
-        >
-          <Form.Item
-            name="operatorId"
-            rules={[{ required: true, message: "请输入操作员ID" }]}
-          >
-            <Input placeholder="操作员ID" style={{ width: 150 }} />
-          </Form.Item>
-          <Form.Item
-            name="dateRange"
-            rules={[{ required: true, message: "请选择时间范围" }]}
-          >
-            <RangePicker />
-          </Form.Item>
-          <Form.Item>
-            <Space>
-              <Button
-                type="primary"
-                htmlType="submit"
-                icon={<SearchOutlined />}
-              >
-                查询
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      ),
-      columns: [
-        { title: "操作员姓名", dataIndex: "operatorName", key: "operatorName" },
-        {
-          title: "打印时间",
-          dataIndex: "printTime",
-          key: "printTime",
-          render: (value) => formatDateTime(value),
-        },
-        { title: "合格证号", dataIndex: "certificateNo", key: "certificateNo" },
-        { title: "品种代码", dataIndex: "modelCode", key: "modelCode" },
-        { title: "VIN", dataIndex: "vin", key: "vin" },
-        {
-          title: "打印状态",
-          dataIndex: "printType",
-          key: "printType",
-          render: () => "补打",
-        },
-      ],
-    },
-    {
-      key: "6",
       label: "合格证编号查询",
       form: (
         <Form
@@ -411,21 +346,30 @@ const ReportsPage = () => {
       ),
       columns: [
         {
+          title: "ID",
+          dataIndex: "id",
+          key: "id",
+        },
+        {
           title: "合格证编号",
-          dataIndex: "certificateNo",
-          key: "certificateNo",
+          dataIndex: "certNo",
+          key: "certNo",
         },
         { title: "VIN", dataIndex: "vin", key: "vin" },
-        { title: "VSN", dataIndex: "vsn", key: "vsn" },
-        { title: "车辆品牌", dataIndex: "vehicleBrand", key: "vehicleBrand" },
-        { title: "车型代码", dataIndex: "modelCode", key: "modelCode" },
+        { title: "品种代码", dataIndex: "varietyCode", key: "varietyCode" },
         {
           title: "打印时间",
           dataIndex: "printTime",
           key: "printTime",
           render: (value) => formatDateTime(value),
         },
-        { title: "操作员", dataIndex: "operatorName", key: "operatorName" },
+        { title: "操作员", dataIndex: "operateUser", key: "operateUser" },
+        {
+          title: "打印类型",
+          dataIndex: "printType",
+          key: "printType",
+          render: (value) => (value === "qualified" ? "合格证" : value),
+        },
       ],
     },
   ];
@@ -450,13 +394,31 @@ const ReportsPage = () => {
       <Space direction="vertical" size="large" style={{ width: "100%" }}>
         {currentReport?.form}
 
-        <Table
-          columns={currentReport?.columns || []}
-          dataSource={dataSource}
-          loading={loading}
-          rowKey={(record, index) => index}
-          scroll={{ x: "max-content" }}
-        />
+        {activeTab === "3" ? (
+          <Card title="合格证数量统计结果" loading={loading}>
+            <div
+              style={{ fontSize: "24px", textAlign: "center", padding: "20px" }}
+            >
+              合格证数量: {certificateCount}
+            </div>
+          </Card>
+        ) : activeTab === "4" ? (
+          <Card title="操作员打印数量统计结果" loading={loading}>
+            <div
+              style={{ fontSize: "24px", textAlign: "center", padding: "20px" }}
+            >
+              打印数量: {printCount}
+            </div>
+          </Card>
+        ) : (
+          <Table
+            columns={currentReport?.columns || []}
+            dataSource={dataSource}
+            loading={loading}
+            rowKey={(record, index) => index}
+            scroll={{ x: "max-content" }}
+          />
+        )}
       </Space>
     </Card>
   );
