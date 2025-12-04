@@ -31,6 +31,13 @@ const serializeParams = (params) => {
   return searchParams.toString();
 };
 
+const formatParams = (params) => {
+  if (!params) return "";
+  return Object.values(params)
+    .filter((v) => v !== undefined && v !== null)
+    .join("/");
+};
+
 /**
  * 请求拦截器 - 添加 Token 等通用请求头
  * @param {Object} config - 请求配置
@@ -68,6 +75,15 @@ const responseInterceptor = async (response) => {
 
   // 业务状态码检查
   if (data.code === 200 || data.code === 201) {
+    return data;
+  }
+
+  // 兼容处理：如果响应中没有 code 字段，但 HTTP 状态码是 200/201，且配置允许（或默认宽松模式），则直接返回数据
+  // 适用于后端返回纯数组或纯对象的情况
+  if (
+    data.code === undefined &&
+    (response.status === 200 || response.status === 201)
+  ) {
     return data;
   }
 
@@ -183,9 +199,16 @@ const fetchWrapper = async (url, options = {}) => {
  * @param {Object} config - 额外配置
  * @returns {Promise}
  */
-export const get = (url, params, config = {}) => {
-  const queryString = serializeParams(params);
-  const fullUrl = queryString ? `${url}?${queryString}` : url;
+export const get = (url, params, config = {}, query = true) => {
+  let fullUrl;
+  if (query) {
+    const queryString = serializeParams(params);
+    fullUrl = queryString ? `${url}?${queryString}` : url;
+  } else {
+    const queryString = formatParams(params);
+    console.log("fullUrl params", queryString);
+    fullUrl = queryString ? `${url}/${queryString}` : url;
+  }
 
   return fetchWrapper(fullUrl, {
     ...config,

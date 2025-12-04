@@ -36,8 +36,8 @@ const ReportsPage = () => {
   const handlePrintHistorySearch = async (values) => {
     try {
       setLoading(true);
-      const response = await getVehiclePrintHistory(values.vin);
-      setDataSource(response.data || []);
+      const response = await getVehiclePrintHistory(values);
+      setDataSource(response || []);
     } catch {
       // 错误已处理
     } finally {
@@ -50,11 +50,11 @@ const ReportsPage = () => {
     try {
       setLoading(true);
       const params = {
-        startTime: values.dateRange[0].format("YYYY-MM-DD"),
-        endTime: values.dateRange[1].format("YYYY-MM-DD"),
+        start: values.dateRange[0].format("YYYY-MM-DD HH:mm:ss"),
+        end: values.dateRange[1].format("YYYY-MM-DD HH:mm:ss"),
       };
       const response = await getOrderModifyInfo(params);
-      setDataSource(response.data || []);
+      setDataSource(response || []);
     } catch {
       // 错误已处理
     } finally {
@@ -159,21 +159,29 @@ const ReportsPage = () => {
         { title: "发动机号", dataIndex: "engineNo", key: "engineNo" },
         {
           title: "打印状态",
-          dataIndex: "printType",
-          key: "printType",
-          render: (value) => PRINT_TYPE_NAMES[value] || value,
+          dataIndex: "operateType",
+          key: "operateType",
+          render: (value, record) => {
+            if (record.operateDesc && record.operateDesc.includes("类型：")) {
+              return record.operateDesc.split("类型：")[1];
+            }
+            return PRINT_TYPE_NAMES[value] || value;
+          },
         },
         {
           title: "打印时间",
-          dataIndex: "printTime",
-          key: "printTime",
+          dataIndex: "operateTime",
+          key: "operateTime",
           render: (value) => formatDateTime(value),
         },
-        { title: "操作员", dataIndex: "operatorName", key: "operatorName" },
+        { title: "操作员", dataIndex: "operateUser", key: "operateUser" },
         {
           title: "合格证编号",
-          dataIndex: "certificateNo",
           key: "certificateNo",
+          render: (_, record) => {
+            const match = record.operateDesc?.match(/证号：([A-Za-z0-9]+)/);
+            return match ? match[1] : "-";
+          },
         },
       ],
     },
@@ -186,7 +194,7 @@ const ReportsPage = () => {
             name="dateRange"
             rules={[{ required: true, message: "请选择时间范围" }]}
           >
-            <RangePicker />
+            <RangePicker showTime />
           </Form.Item>
           <Form.Item>
             <Space>
@@ -208,20 +216,24 @@ const ReportsPage = () => {
           key: "modifyTime",
           render: (value) => formatDateTime(value),
         },
+        { title: "VIN", dataIndex: "vin", key: "vin" },
         {
-          title: "生产年份",
-          dataIndex: "productionYear",
-          key: "productionYear",
+          title: "生产日期",
+          dataIndex: "manufactureDate",
+          key: "manufactureDate",
         },
-        { title: "VSN", dataIndex: "vsn", key: "vsn" },
-        { title: "品种代码", dataIndex: "modelCode", key: "modelCode" },
+        { title: "VSN", dataIndex: "vsnCode", key: "vsnCode" },
         { title: "轮胎数", dataIndex: "tireCount", key: "tireCount" },
         { title: "轮胎规格", dataIndex: "tireSpec", key: "tireSpec" },
-        { title: "钢板弹簧片数", dataIndex: "springCount", key: "springCount" },
+        {
+          title: "钢板弹簧片数",
+          dataIndex: "steelSpringLeafCount",
+          key: "steelSpringLeafCount",
+        },
         {
           title: "载客人数",
-          dataIndex: "passengerCount",
-          key: "passengerCount",
+          dataIndex: "ratedPassengerCapacity",
+          key: "ratedPassengerCapacity",
         },
         { title: "总质量", dataIndex: "totalMass", key: "totalMass" },
         { title: "整备质量", dataIndex: "curbWeight", key: "curbWeight" },

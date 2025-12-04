@@ -1,15 +1,18 @@
 /**
  * 统计报表相关API
  */
-import { get, post } from '../utils/fetch';
+import { get, post } from "../utils/fetch";
 
 /**
  * 根据VIN查询车辆打印历史记录
  * @param {string} vin - VIN码
  * @returns {Promise}
  */
-export const getVehiclePrintHistory = (vin) => {
-  return get('/report/print-history', { vin });
+export const getVehiclePrintHistory = (params) => {
+  // Use path parameter style: /api/report/print-history/:vin
+  const result = get(`/api/report/print-history`, params, {}, false);
+  console.log(result);
+  return result;
 };
 
 /**
@@ -20,7 +23,9 @@ export const getVehiclePrintHistory = (vin) => {
  * @returns {Promise}
  */
 export const getOrderModifyInfo = (params) => {
-  return get('/report/order-modify', params);
+  // Custom path parameter format: /start&end
+  const { start, end } = params;
+  return get(`/api/report/order-modify/${start}&${end}`, {});
 };
 
 /**
@@ -31,7 +36,7 @@ export const getOrderModifyInfo = (params) => {
  * @returns {Promise}
  */
 export const getCertificateCount = (params) => {
-  return get('/report/certificate-count', params);
+  return get("/report/certificate-count", params);
 };
 
 /**
@@ -43,7 +48,7 @@ export const getCertificateCount = (params) => {
  * @returns {Promise}
  */
 export const getOperatorPrintCount = (params) => {
-  return get('/report/operator-print-count', params);
+  return get("/report/operator-print-count", params);
 };
 
 /**
@@ -55,7 +60,7 @@ export const getOperatorPrintCount = (params) => {
  * @returns {Promise}
  */
 export const getOperatorReprintCount = (params) => {
-  return get('/report/operator-reprint-count', params);
+  return get("/report/operator-reprint-count", params);
 };
 
 /**
@@ -64,7 +69,7 @@ export const getOperatorReprintCount = (params) => {
  * @returns {Promise}
  */
 export const getCertificateInfo = (certificateNo) => {
-  return get('/report/certificate-info', { certificateNo });
+  return get("/report/certificate-info", { certificateNo });
 };
 
 /**
@@ -75,6 +80,6 @@ export const getCertificateInfo = (certificateNo) => {
  */
 export const exportReport = (reportType, params) => {
   return post(`/report/export/${reportType}`, params, {
-    responseType: 'blob',
+    responseType: "blob",
   });
 };

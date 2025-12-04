@@ -102,10 +102,7 @@ const ModelView = ({
               name="modelCode"
               rules={[{ required: true, message: "请输入车型代码" }]}
             >
-              <Input
-                placeholder="请输入车型代码"
-                disabled={isReadOnly || mode === "view"}
-              />
+              <Input placeholder="请输入车型代码" disabled={mode === "view"} />
             </Form.Item>
           </Col>
 

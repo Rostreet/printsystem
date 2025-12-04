@@ -28,14 +28,16 @@ import {
   getCertificateByVin,
   getPrintPreview,
   normalPrint,
-  reprintCertificate,
 } from "../../api/print";
 import { VEHICLE_TYPE_NAMES, VEHICLE_STATUS_NAMES } from "../../constants";
+import { useNavigate } from "react-router-dom";
 
 const PrintPage = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useUserStore();
   const [currentStep, setCurrentStep] = useState(0);
+  const [vdata, setVdata] = useState(null);
   const [loading, setLoading] = useState(false);
   const [vinForm] = Form.useForm();
   const [validateResult, setValidateResult] = useState(null);
@@ -94,10 +96,12 @@ const PrintPage = () => {
         vin: values.vin,
       };
       const response = await getCertificateByVin(params);
-      console.log("response", response);
       setValidateResult(response.data);
-      console.log("validateResult", response.data);
       setCurrentStep(1);
+      setVdata({
+        vin: response.data.vin,
+        vsn: response.data.vsnCode,
+      });
       message.success("校验成功");
     } catch {
       // 错误已在拦截器处理
@@ -111,9 +115,13 @@ const PrintPage = () => {
     try {
       setLoading(true);
       const values = vinForm.getFieldsValue();
-      console.log("values", values);
-      if (!values.vsnCode) {
-        message.error("VIN是底盘，VSN是整车，不可打印");
+      if (vdata?.vin) {
+        const vsnVal = (vdata?.vsn || values.vsn || "").toUpperCase().trim();
+        if (!vsnVal.startsWith("VS")) {
+          message.error("VIN是底盘，VSN是整车，不可打印");
+          setLoading(false);
+          return;
+        }
       }
       const response = await getPrintPreview(values);
       setPreviewData(response.data);
@@ -140,21 +148,6 @@ const PrintPage = () => {
       message.success("打印成功");
     } catch {
       // 错误已在拦截a器处理
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 重打
-  const handleReprint = async () => {
-    try {
-      setLoading(true);
-      const values = vinForm.getFieldsValue();
-      const response = await reprintCertificate({ vin: values.vin });
-      message.success("重打成功");
-      setPrintResult(response.data);
-    } catch {
-      // 错误已在拦截器处理
     } finally {
       setLoading(false);
     }
@@ -400,11 +393,12 @@ const PrintPage = () => {
 
               <div style={{ marginTop: 24, textAlign: "center" }}>
                 <Space>
-                  <Button type="primary" onClick={handleReset}>
-                    打印下一辆
-                  </Button>
-                  <Button icon={<ReloadOutlined />} onClick={handleReprint}>
-                    重打当前车辆
+                  <Button
+                    onClick={() => {
+                      navigate("/parameter");
+                    }}
+                  >
+                    返回
                   </Button>
                 </Space>
               </div>

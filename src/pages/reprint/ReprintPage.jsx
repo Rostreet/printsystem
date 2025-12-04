@@ -265,7 +265,7 @@ const ReprintPage = () => {
                       name="modelCode"
                       rules={[{ required: true, message: "请输入车型代码" }]}
                     >
-                      <Input placeholder="请输入车型代码" maxLength={4} />
+                      <Input placeholder="请输入车型代码" />
                     </Form.Item>
                   </Col>
 
