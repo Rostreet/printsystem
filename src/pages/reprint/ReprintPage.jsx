@@ -112,7 +112,6 @@ const ReprintPage = () => {
         const params = {
           vin: values.vin,
         };
-        console.log(values);
         const cparams = {
           vin: values.vin,
           engineNo: values.engineInfo,

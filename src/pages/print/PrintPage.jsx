@@ -17,17 +17,16 @@ import {
   Divider,
   Spin,
   Typography,
+  Modal,
 } from "antd";
 import {
   ScanOutlined,
   CheckCircleOutlined,
   PrinterOutlined,
-  ReloadOutlined,
 } from "@ant-design/icons";
 import {
   getCertificateByVin,
-  getPrintPreview,
-  normalPrint,
+  getCertificatePrintReport,
 } from "../../api/print";
 import { VEHICLE_TYPE_NAMES, VEHICLE_STATUS_NAMES } from "../../constants";
 import { useNavigate } from "react-router-dom";
@@ -115,6 +114,7 @@ const PrintPage = () => {
     try {
       setLoading(true);
       const values = vinForm.getFieldsValue();
+      console.log(values);
       if (vdata?.vin) {
         const vsnVal = (vdata?.vsn || values.vsn || "").toUpperCase().trim();
         if (!vsnVal.startsWith("VS")) {
@@ -123,8 +123,18 @@ const PrintPage = () => {
           return;
         }
       }
-      const response = await getPrintPreview(values);
-      setPreviewData(response.data);
+      const params = {
+        vin: validateResult.vin,
+        engineNo: validateResult.engineInfo,
+        printType: validateResult.type,
+      };
+      const getCertificateRes = await getCertificatePrintReport(params);
+      const response = await getCertificateByVin({ vin: validateResult.vin });
+      const prevData = {
+        ...response.data,
+        certificateNo: getCertificateRes.data,
+      };
+      setPreviewData(prevData);
       setCurrentStep(2);
     } catch {
       // 错误已在拦截器处理
@@ -134,23 +144,28 @@ const PrintPage = () => {
   };
 
   // 第三步：执行打印
-  const handlePrint = async () => {
-    try {
-      setLoading(true);
-      const values = vinForm.getFieldsValue();
-      const printData = {
-        ...values,
-        parameters: previewData,
-      };
-      const response = await normalPrint(printData);
-      setPrintResult(response.data);
-      setCurrentStep(3);
-      message.success("打印成功");
-    } catch {
-      // 错误已在拦截a器处理
-    } finally {
-      setLoading(false);
-    }
+  const handlePrint = () => {
+    const handleAfterPrint = () => {
+      window.removeEventListener("afterprint", handleAfterPrint);
+
+      Modal.confirm({
+        title: "打印确认",
+        content: "请确认合格证是否已成功打印？",
+        okText: "打印成功",
+        cancelText: "未成功/取消",
+        onOk: () => {
+          setPrintResult({
+            ...previewData,
+            reprintTime: new Date().toLocaleString(),
+            operatorName: user?.username,
+          });
+          setCurrentStep(3);
+        },
+      });
+    };
+
+    window.addEventListener("afterprint", handleAfterPrint);
+    window.print();
   };
 
   // 重置
