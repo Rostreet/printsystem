@@ -104,8 +104,7 @@ const ModelView = ({
             >
               <Input
                 placeholder="请输入车型代码"
-                disabled={isReadOnly || mode === "edit"}
-                maxLength={4}
+                disabled={isReadOnly || mode === "view"}
               />
             </Form.Item>
           </Col>

@@ -7,14 +7,12 @@ import {
   MenuUnfoldOutlined,
   UserOutlined,
   LogoutOutlined,
-  LockOutlined,
   DatabaseOutlined,
   ShoppingOutlined,
   PrinterOutlined,
   ReloadOutlined,
   ToolOutlined,
   BarChartOutlined,
-  TeamOutlined,
   CarOutlined,
 } from "@ant-design/icons";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
@@ -29,7 +27,7 @@ const { Header, Sider, Content } = Layout;
 const MainLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { userInfo, logout: logoutUser } = useUserStore();
+  const { user, logout: logoutUser } = useUserStore();
   const { sidebarCollapsed, toggleSidebar } = useAppStore();
 
   // 菜单项配置
@@ -135,11 +133,9 @@ const MainLayout = () => {
             >
               <div className={styles.userDropdown}>
                 <Avatar icon={<UserOutlined />} />
-                <span className={styles.userName}>
-                  {userInfo?.name || "用户"}
-                </span>
+                <span className={styles.userName}>{user?.username}</span>
                 <span className={styles.userRole}>
-                  {ROLE_NAMES[userInfo?.role] || "操作员"}
+                  {user?.operator_type || "操作员"}
                 </span>
               </div>
             </Dropdown>

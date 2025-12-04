@@ -42,7 +42,11 @@ export const createOrder = (data) => {
  * @returns {Promise}
  */
 export const updateOrder = (vin, data) => {
-  return put(`/order/${vin}`, data);
+  const params = {
+    vin: vin,
+    ...data,
+  };
+  return put(`/api/warehousingcar/update`, params);
 };
 
 /**

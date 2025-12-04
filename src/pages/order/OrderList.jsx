@@ -2,12 +2,17 @@
  * 订单车维护页面
  */
 import { useState, useEffect, useCallback } from "react";
-import { Card, Table, Space, Typography } from "antd";
+import { Card, Table, Space, Typography, Button, message } from "antd";
+import ModelView from "../parameter/components/ModelView";
+import { updateOrder } from "../../api/order";
 import { getOrderList } from "../../api/order";
 
 const OrderList = () => {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
+  const [modelViewOpen, setModelViewOpen] = useState(false);
+  const [modelViewMode, setModelViewMode] = useState("edit");
+  const [selectedRecord, setSelectedRecord] = useState(null);
 
   // 表格列定义
   const columns = [
@@ -243,6 +248,27 @@ const OrderList = () => {
       key: "productionAddress",
       width: 200,
     },
+    {
+      title: "操作",
+      key: "action",
+      fixed: "right",
+      width: 100,
+      render: (_, record) => (
+        <Space size="small">
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              setSelectedRecord(record);
+              setModelViewMode("edit");
+              setModelViewOpen(true);
+            }}
+          >
+            编辑
+          </Button>
+        </Space>
+      ),
+    },
   ];
   // 加载数据
   const fetchData = useCallback(async () => {
@@ -262,6 +288,22 @@ const OrderList = () => {
     fetchData();
   }, [fetchData]);
 
+  const handleModelSubmit = async (values) => {
+    try {
+      setLoading(true);
+      // values include vin field to identify order
+      const vin = values.vin;
+      await updateOrder(vin, values);
+      message.success("更新成功");
+      setModelViewOpen(false);
+      fetchData();
+    } catch {
+      message.error("更新失败");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="order-list">
       <Card>
@@ -277,6 +319,14 @@ const OrderList = () => {
             scroll={{ x: "max-content", y: 600 }}
             sticky={{ offsetHeader: 0 }}
             style={{ width: "100%" }}
+          />
+          <ModelView
+            open={modelViewOpen}
+            mode={modelViewMode}
+            record={selectedRecord}
+            onCancel={() => setModelViewOpen(false)}
+            onSubmit={handleModelSubmit}
+            allModels={[]}
           />
         </Space>
       </Card>
