@@ -150,10 +150,7 @@ const ModelView = ({
             <Form.Item
               label="底盘型号"
               name="chassisModel"
-              rules={[
-                { required: true, message: "请输入底盘型号" },
-                { pattern: /^[A-Z0-9]+$/, message: "底盘型号不允许填写汉字" },
-              ]}
+              rules={[{ required: true, message: "请输入底盘型号" }]}
             >
               <Input placeholder="如：CA1234PK2L5" disabled={isReadOnly} />
             </Form.Item>

@@ -30,6 +30,8 @@ import {
 } from "../../api/print";
 import { VEHICLE_TYPE_NAMES, VEHICLE_STATUS_NAMES } from "../../constants";
 import { useNavigate } from "react-router-dom";
+import CertificatePreview from "./components/CertificatePreview";
+import "./PrintPage.css";
 
 const PrintPage = () => {
   const location = useLocation();
@@ -327,43 +329,14 @@ const PrintPage = () => {
           {/* 步骤3：打印预览 */}
           {currentStep === 2 && previewData && (
             <Card type="inner" title="打印预览">
-              <Descriptions bordered column={2} size="small">
-                <Descriptions.Item label="车辆品牌">
-                  {previewData.vehicleBrand}
-                </Descriptions.Item>
-                <Descriptions.Item label="底盘型号">
-                  {previewData.chassisModel}
-                </Descriptions.Item>
-                <Descriptions.Item label="车辆类别">
-                  {VEHICLE_TYPE_NAMES[previewData.vehicleCategory]}
-                </Descriptions.Item>
-                <Descriptions.Item label="燁料种类">
-                  {previewData.fuelType}
-                </Descriptions.Item>
-                <Descriptions.Item label="排放标准">
-                  {previewData.emissionStandard}
-                </Descriptions.Item>
-                <Descriptions.Item label="转向形式">
-                  {previewData.steeringType}
-                </Descriptions.Item>
-                <Descriptions.Item label="轮距">
-                  {previewData.wheelbase}
-                </Descriptions.Item>
-                <Descriptions.Item label="企业标准">
-                  {previewData.enterpriseStandard}
-                </Descriptions.Item>
-                <Descriptions.Item label="外廓尺寸">
-                  {previewData.overallDimension}
-                </Descriptions.Item>
-                <Descriptions.Item label="轴荷">
-                  {previewData.axleLoad}
-                </Descriptions.Item>
-                {previewData.cargoBoxDimension && (
-                  <Descriptions.Item label="货箱尺寸" span={2}>
-                    {previewData.cargoBoxDimension}
-                  </Descriptions.Item>
-                )}
-              </Descriptions>
+              <Alert
+                message="打印提示"
+                description="请确认打印机纸张设置为A4纸，以确保打印质量。"
+                type="info"
+                showIcon
+                style={{ marginBottom: 20 }}
+              />
+              <CertificatePreview data={previewData} />
 
               <div style={{ marginTop: 24, textAlign: "center" }}>
                 <Space>
@@ -391,20 +364,22 @@ const PrintPage = () => {
                 style={{ marginBottom: 24 }}
               />
 
-              <Descriptions bordered column={2}>
-                <Descriptions.Item label="合格证编号">
-                  {printResult.certificateNo}
-                </Descriptions.Item>
-                <Descriptions.Item label="VIN码">
-                  {printResult.vin}
-                </Descriptions.Item>
-                <Descriptions.Item label="打印时间">
-                  {printResult.printTime}
-                </Descriptions.Item>
-                <Descriptions.Item label="操作员">
-                  {printResult.operatorName}
-                </Descriptions.Item>
-              </Descriptions>
+              <div style={{ marginBottom: 24 }}>
+                <Descriptions bordered column={2}>
+                  <Descriptions.Item label="合格证编号" span={2}>
+                    {printResult.certificateNo}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="VIN码" span={2}>
+                    {printResult.vin}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="打印时间" span={2}>
+                    {printResult.reprintTime}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="操作员" span={2}>
+                    {printResult.operatorName}
+                  </Descriptions.Item>
+                </Descriptions>
+              </div>
 
               <div style={{ marginTop: 24, textAlign: "center" }}>
                 <Space>
