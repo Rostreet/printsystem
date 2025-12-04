@@ -1,0 +1,71 @@
+.certificate-preview-container {
+  background: white;
+  padding: 20px;
+  border: 1px solid #ddd;
+  margin-bottom: 20px;
+  overflow-x: auto;
+}
+
+.certificate-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "SimSun", "Songti SC", serif; /* Use a serif font for certificate look */
+  font-size: 12px;
+  color: #000;
+}
+
+.certificate-table td {
+  border: 1px solid #000;
+  padding: 4px 8px;
+  line-height: 1.5;
+}
+
+.certificate-table .label-cell {
+  font-weight: bold;
+  background-color: #f9f9f9;
+  width: 140px;
+}
+
+.certificate-table .value-cell {
+  min-width: 100px;
+}
+
+.certificate-header {
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  font-family: "SimHei", sans-serif;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+
+  .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  .certificate-preview-container {
+    border: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  /* Hide buttons and other UI elements if they are inside print-area by mistake, 
+     though we will control what goes into print-area */
+  .no-print {
+    display: none !important;
+  }
+}

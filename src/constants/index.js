@@ -3,8 +3,7 @@
  */
 
 // API 基础路径
-export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
+export const API_BASE_URL = "http://192.168.60.249:8080";
 
 // 用户角色
 export const USER_ROLES = {
@@ -48,6 +47,15 @@ export const VEHICLE_TYPES = {
   TRUCK: "TRUCK", // 货车
   SPECIAL: "SPECIAL", // 专用车
   CHASSIS: "CHASSIS", // 二类底盘
+};
+export const VEHICLE_STATUS_NAMES = {
+  notqualified: "不合格",
+  qualified: "合格",
+  chassis: "二类底盘",
+  order: "订单",
+  whole: "整车",
+  reprint: "重打",
+  supplement: "补打",
 };
 
 // 车辆类型名称

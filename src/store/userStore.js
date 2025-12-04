@@ -23,17 +23,17 @@ const useUserStore = create(
   persist(
     (set) => ({
       // 用户信息
-      userInfo: null,
+      user: null,
       // 是否已登录
       isAuthenticated: false,
       // Token
       token: null,
 
       // 设置用户信息
-      setUserInfo: (userInfo) =>
+      setUserInfo: (user) =>
         set({
-          userInfo,
-          isAuthenticated: !!userInfo,
+          user,
+          isAuthenticated: !!user,
         }),
 
       // 设置 Token
@@ -43,9 +43,9 @@ const useUserStore = create(
         }),
 
       // 登录
-      login: (userInfo, token) =>
+      login: (user, token) =>
         set({
-          userInfo,
+          user,
           token,
           isAuthenticated: true,
         }),
@@ -53,7 +53,7 @@ const useUserStore = create(
       // 登出
       logout: () =>
         set({
-          userInfo: null,
+          user: null,
           token: null,
           isAuthenticated: false,
         }),
@@ -61,9 +61,9 @@ const useUserStore = create(
       // 更新用户信息
       updateUserInfo: (updates) =>
         set((state) => ({
-          userInfo: state.userInfo
+          user: state.user
             ? {
-                ...state.userInfo,
+                ...state.user,
                 ...updates,
               }
             : null,
@@ -72,7 +72,7 @@ const useUserStore = create(
     {
       name: "user-storage", // localStorage 中的 key 名称
       partialize: (state) => ({
-        userInfo: state.userInfo,
+        user: state.user,
         token: state.token,
         isAuthenticated: state.isAuthenticated,
       }),

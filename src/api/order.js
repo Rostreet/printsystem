@@ -1,7 +1,7 @@
 /**
  * 订单车维护相关API
  */
-import request from "./request";
+import { get, post, put, del } from "../utils/fetch";
 
 /**
  * 获取订单车列表
@@ -14,7 +14,7 @@ import request from "./request";
  * @returns {Promise}
  */
 export const getOrderList = (params) => {
-  return request.get("/order", { params });
+  return get("/api/ordercar/getall", params);
 };
 
 /**
@@ -23,7 +23,7 @@ export const getOrderList = (params) => {
  * @returns {Promise}
  */
 export const getOrderByVin = (vin) => {
-  return request.get(`/order/${vin}`);
+  return get(`/order/${vin}`);
 };
 
 /**
@@ -32,7 +32,7 @@ export const getOrderByVin = (vin) => {
  * @returns {Promise}
  */
 export const createOrder = (data) => {
-  return request.post("/order", data);
+  return post("/order", data);
 };
 
 /**
@@ -42,7 +42,7 @@ export const createOrder = (data) => {
  * @returns {Promise}
  */
 export const updateOrder = (vin, data) => {
-  return request.put(`/order/${vin}`, data);
+  return put(`/order/${vin}`, data);
 };
 
 /**
@@ -51,5 +51,5 @@ export const updateOrder = (vin, data) => {
  * @returns {Promise}
  */
 export const deleteOrder = (vin) => {
-  return request.delete(`/order/${vin}`);
+  return del(`/order/${vin}`);
 };

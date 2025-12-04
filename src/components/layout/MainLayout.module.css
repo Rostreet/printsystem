@@ -159,14 +159,16 @@
   min-height: calc(100vh - 64px - 48px);
   border-radius: 0;
   box-shadow: none;
+  width: calc(100% - 32px); /* 减去左右margin的总和 */
+  overflow: hidden;
 }
 
 /* 响应式设计 - 标准桌面屏幕 */
 @media (max-width: 1919px) {
   .content {
-    max-width: 1600px;
-    margin-left: auto;
-    margin-right: auto;
+    max-width: none;
+    margin-left: var(--spacing-xl);
+    margin-right: var(--spacing-xl);
   }
 }
 

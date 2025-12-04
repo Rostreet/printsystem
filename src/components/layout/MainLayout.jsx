@@ -55,6 +55,11 @@ const MainLayout = () => {
       label: "合格证打印",
     },
     {
+      key: "/reprint",
+      icon: <ReloadOutlined />,
+      label: "合格证补打",
+    },
+    {
       key: "/reports",
       icon: <BarChartOutlined />,
       label: "统计报表",
@@ -63,14 +68,6 @@ const MainLayout = () => {
 
   // 用户下拉菜单
   const userMenuItems = [
-    {
-      key: "changePassword",
-      icon: <LockOutlined />,
-      label: "修改密码",
-    },
-    {
-      type: "divider",
-    },
     {
       key: "logout",
       icon: <LogoutOutlined />,
@@ -96,9 +93,6 @@ const MainLayout = () => {
         logoutUser();
         navigate("/login");
       }
-    } else if (key === "changePassword") {
-      // TODO: 打开修改密码对话框
-      message.info("修改密码功能开发中");
     }
   };
 

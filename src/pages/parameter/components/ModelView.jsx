@@ -33,7 +33,6 @@ const ModelView = ({
       if (template) {
         // 复制模板数据，但清空车型代码让用户重新输入
         const templateData = { ...template };
-        delete templateData.modelCode;
         delete templateData.id;
         form.setFieldsValue(templateData);
         message.success("模板导入成功");
@@ -101,13 +100,10 @@ const ModelView = ({
             <Form.Item
               label="车型代码"
               name="modelCode"
-              rules={[
-                { required: true, message: "请输入车型代码" },
-                { len: 4, message: "车型代码必须为4位" },
-              ]}
+              rules={[{ required: true, message: "请输入车型代码" }]}
             >
               <Input
-                placeholder="请输入4位车型代码"
+                placeholder="请输入车型代码"
                 disabled={isReadOnly || mode === "edit"}
                 maxLength={4}
               />

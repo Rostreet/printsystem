@@ -1,7 +1,7 @@
 /**
  * 二类底盘维护相关API
  */
-import request from "./request";
+import { get, post, put, del } from "../utils/fetch";
 
 /**
  * 获取底盘列表
@@ -13,7 +13,7 @@ import request from "./request";
  * @returns {Promise}
  */
 export const getChassisList = (params) => {
-  return request.get("/chassis", { params });
+  return get("/api/chassiscar/getall", params);
 };
 
 /**
@@ -22,7 +22,7 @@ export const getChassisList = (params) => {
  * @returns {Promise}
  */
 export const getChassisById = (id) => {
-  return request.get(`/chassis/${id}`);
+  return get(`/chassis/${id}`);
 };
 
 /**
@@ -31,7 +31,7 @@ export const getChassisById = (id) => {
  * @returns {Promise}
  */
 export const createChassis = (data) => {
-  return request.post("/chassis", data);
+  return post("/chassis", data);
 };
 
 /**
@@ -41,7 +41,7 @@ export const createChassis = (data) => {
  * @returns {Promise}
  */
 export const updateChassis = (id, data) => {
-  return request.put(`/chassis/${id}`, data);
+  return put(`/chassis/${id}`, data);
 };
 
 /**
@@ -50,5 +50,5 @@ export const updateChassis = (id, data) => {
  * @returns {Promise}
  */
 export const deleteChassis = (id) => {
-  return request.delete(`/chassis/${id}`);
+  return del(`/chassis/${id}`);
 };

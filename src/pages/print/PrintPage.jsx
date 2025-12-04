@@ -1,7 +1,9 @@
 /**
  * 合格证打印页面
  */
-import { useState } from 'react';
+import { useState, useEffect } from "react";
+import useUserStore from "../../store/userStore";
+import { useLocation } from "react-router-dom";
 import {
   Card,
   Form,
@@ -12,24 +14,27 @@ import {
   Alert,
   Space,
   message,
+  Divider,
   Spin,
-} from 'antd';
+  Typography,
+} from "antd";
 import {
   ScanOutlined,
   CheckCircleOutlined,
   PrinterOutlined,
   ReloadOutlined,
-} from '@ant-design/icons';
+} from "@ant-design/icons";
 import {
-  validateVehicle,
+  getCertificateByVin,
   getPrintPreview,
   normalPrint,
   reprintCertificate,
-} from '../../api/print';
-import { VIN_LENGTH, VSN_LENGTH, VEHICLE_TYPE_NAMES } from '../../constants';
-import { validateVIN, validateVSN } from '../../utils';
+} from "../../api/print";
+import { VEHICLE_TYPE_NAMES, VEHICLE_STATUS_NAMES } from "../../constants";
 
 const PrintPage = () => {
+  const location = useLocation();
+  const { user } = useUserStore();
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [vinForm] = Form.useForm();
@@ -37,34 +42,63 @@ const PrintPage = () => {
   const [previewData, setPreviewData] = useState(null);
   const [printResult, setPrintResult] = useState(null);
 
+  // 自动填充从URL参数中获取的数据
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const vin = queryParams.get("vin");
+    const vsn = queryParams.get("vsn");
+
+    if (vin || vsn) {
+      vinForm.setFieldsValue({
+        vin: vin || "",
+        vsn: vsn || "",
+      });
+    }
+  }, [location.search, vinForm]);
+
   // 步骤配置
   const steps = [
     {
-      title: 'VIN扫描',
+      title: "获取车辆",
       icon: <ScanOutlined />,
     },
     {
-      title: '校验确认',
+      title: "状态校验",
       icon: <CheckCircleOutlined />,
     },
     {
-      title: '打印预览',
+      title: "打印预览",
       icon: <PrinterOutlined />,
     },
     {
-      title: '执行打印',
+      title: "执行打印",
       icon: <PrinterOutlined />,
     },
   ];
 
-  // 步骤1：VIN扫描提交
+  //第一步： 获取车辆
+  const operatorType = user?.operator_type;
+  const isQualityUser = operatorType === "质量部";
+
   const handleVinSubmit = async (values) => {
+    // 权限检查：只有质量部可以进行校验
+    const operatorType = user?.operator_type;
+    const isQualityUser = operatorType === "质量部";
+    if (!isQualityUser) {
+      message.error("权限不足：只有质量部的操作员才可以执行校验");
+      return;
+    }
     try {
       setLoading(true);
-      const response = await validateVehicle(values);
+      const params = {
+        vin: values.vin,
+      };
+      const response = await getCertificateByVin(params);
+      console.log("response", response);
       setValidateResult(response.data);
+      console.log("validateResult", response.data);
       setCurrentStep(1);
-      message.success('校验成功');
+      message.success("校验成功");
     } catch {
       // 错误已在拦截器处理
     } finally {
@@ -72,11 +106,15 @@ const PrintPage = () => {
     }
   };
 
-  // 步骤2：确认校验结果
+  // 第二步：确认校验结果
   const handleConfirmValidation = async () => {
     try {
       setLoading(true);
       const values = vinForm.getFieldsValue();
+      console.log("values", values);
+      if (!values.vsnCode) {
+        message.error("VIN是底盘，VSN是整车，不可打印");
+      }
       const response = await getPrintPreview(values);
       setPreviewData(response.data);
       setCurrentStep(2);
@@ -87,7 +125,7 @@ const PrintPage = () => {
     }
   };
 
-  // 步骤3：执行打印
+  // 第三步：执行打印
   const handlePrint = async () => {
     try {
       setLoading(true);
@@ -99,7 +137,7 @@ const PrintPage = () => {
       const response = await normalPrint(printData);
       setPrintResult(response.data);
       setCurrentStep(3);
-      message.success('打印成功');
+      message.success("打印成功");
     } catch {
       // 错误已在拦截a器处理
     } finally {
@@ -113,7 +151,7 @@ const PrintPage = () => {
       setLoading(true);
       const values = vinForm.getFieldsValue();
       const response = await reprintCertificate({ vin: values.vin });
-      message.success('重打成功');
+      message.success("重打成功");
       setPrintResult(response.data);
     } catch {
       // 错误已在拦截器处理
@@ -133,13 +171,28 @@ const PrintPage = () => {
 
   return (
     <div className="print-page">
-      <Card title="合格证打印">
-        <Steps current={currentStep} items={steps} style={{ marginBottom: 32 }} />
+      <Card
+        title="合格证打印"
+        extra={`当前车辆状态为：${
+          VEHICLE_STATUS_NAMES[validateResult?.type] || ""
+        }`}
+      >
+        <div
+          style={{
+            padding: "20px",
+            marginBottom: 32,
+            border: "1px solid #d9d9d9",
+            borderRadius: "8px",
+            background: "#fafafa",
+          }}
+        >
+          <Steps current={currentStep} items={steps} />
+        </div>
 
         <Spin spinning={loading}>
-          {/* 步骤1：VIN扫描 */}
+          {/* 步骤1：获取车辆 */}
           {currentStep === 0 && (
-            <Card type="inner" title="VIN/VSN扫描输入">
+            <Card type="inner" title="输入VIN/VSN代码">
               <Form
                 form={vinForm}
                 labelCol={{ span: 4 }}
@@ -149,68 +202,42 @@ const PrintPage = () => {
                 <Form.Item
                   label="VIN码"
                   name="vin"
-                  rules={[
-                    { required: true, message: '请输入VIN码' },
-                    { len: VIN_LENGTH, message: `VIN码必须为${VIN_LENGTH}位` },
-                    {
-                      validator: (_, value) => {
-                        if (value && !validateVIN(value)) {
-                          return Promise.reject('VIN码格式不正确');
-                        }
-                        return Promise.resolve();
-                      },
-                    },
-                  ]}
+                  rules={[{ required: true, message: "请输入VIN码" }]}
                 >
-                  <Input
-                    placeholder={`请扫描或输入${VIN_LENGTH}位VIN码`}
-                    maxLength={VIN_LENGTH}
-                    style={{ textTransform: 'uppercase' }}
-                  />
+                  <Input placeholder="请输入VIN码" />
                 </Form.Item>
 
                 <Form.Item
                   label="VSN码"
                   name="vsn"
-                  rules={[
-                    { required: true, message: '请输入VSN码' },
-                    { len: VSN_LENGTH, message: `VSN码必须为${VSN_LENGTH}位` },
-                    {
-                      validator: (_, value) => {
-                        if (value && !validateVSN(value)) {
-                          return Promise.reject('VSN码格式不正确');
-                        }
-                        return Promise.resolve();
-                      },
-                    },
-                  ]}
+                  rules={[{ required: true, message: "请输入VSN码" }]}
                 >
-                  <Input
-                    placeholder={`请扫描或输入${VSN_LENGTH}位VSN码`}
-                    maxLength={VSN_LENGTH}
-                    style={{ textTransform: 'uppercase' }}
-                  />
-                </Form.Item>
-
-                <Form.Item
-                  label="发动机号"
-                  name="engineNo"
-                  rules={[{ required: true, message: '请输入发动机号' }]}
-                >
-                  <Input placeholder="请输入发动机号" />
+                  <Input placeholder="请输入VSN码" />
                 </Form.Item>
 
                 <Form.Item wrapperCol={{ offset: 4 }}>
                   <Space>
-                    <Button type="primary" htmlType="submit" icon={<ScanOutlined />}>
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      icon={<ScanOutlined />}
+                      disabled={!isQualityUser}
+                    >
                       校验
                     </Button>
-                    <Button onClick={handleReset}>
-                      重置
-                    </Button>
+                    <Button onClick={handleReset}>重置</Button>
                   </Space>
                 </Form.Item>
               </Form>
+              {!isQualityUser && (
+                <div style={{ marginTop: 12 }}>
+                  <Alert
+                    description="只有质量部的操作员才可以执行校验"
+                    type="warning"
+                    showIcon
+                  />
+                </div>
+              )}
             </Card>
           )}
 
@@ -224,45 +251,59 @@ const PrintPage = () => {
                 showIcon
                 style={{ marginBottom: 24 }}
               />
-
+              {
+                // 订单车显示特殊信息
+                validateResult.type === "order" && (
+                  <>
+                    <Typography.Title level={5}>
+                      订单车特殊信息
+                    </Typography.Title>
+                    <Descriptions bordered column={2} size="small">
+                      <Descriptions.Item label="订单车颜色" span={2}>
+                        {validateResult.vehicleColor}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="订单车座位增减数量" span={2}>
+                        {validateResult.cabSeatingCapacity}
+                      </Descriptions.Item>
+                    </Descriptions>
+                    <Divider />
+                  </>
+                )
+              }
+              {
+                //二类底盘要进行特殊判断
+                validateResult.type === "chassis" ? (
+                  <Descriptions bordered column={2}>
+                    <Descriptions.Item label="VIN码">
+                      {validateResult.vin}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="VSN码">
+                      {validateResult.vsnCode ? validateResult.vsnCode : "-"}
+                    </Descriptions.Item>
+                  </Descriptions>
+                ) : (
+                  <Descriptions bordered column={2}>
+                    <Descriptions.Item label="VIN码">
+                      {validateResult.vin}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="VSN码">
+                      {validateResult.vsnCode}
+                    </Descriptions.Item>
+                  </Descriptions>
+                )
+              }
               <Descriptions bordered column={2}>
-                <Descriptions.Item label="VIN码">
-                  {validateResult.vin}
-                </Descriptions.Item>
-                <Descriptions.Item label="VSN码">
-                  {validateResult.vsn}
-                </Descriptions.Item>
                 <Descriptions.Item label="车辆类型">
-                  {VEHICLE_TYPE_NAMES[validateResult.vehicleType] || validateResult.vehicleType}
+                  {validateResult.vehicleType}
                 </Descriptions.Item>
                 <Descriptions.Item label="车型代码">
                   {validateResult.modelCode}
                 </Descriptions.Item>
-                {validateResult.isChassis && (
-                  <Descriptions.Item label="二类底盘" span={2}>
-                    <Alert
-                      message="该车辆为二类底盘"
-                      type="warning"
-                      showIcon
-                    />
-                  </Descriptions.Item>
-                )}
-                {validateResult.isOrderVehicle && (
-                  <Descriptions.Item label="订单车" span={2}>
-                    <Alert
-                      message="该车辆为订单车"
-                      type="info"
-                      showIcon
-                    />
-                  </Descriptions.Item>
-                )}
               </Descriptions>
 
-              <div style={{ marginTop: 24, textAlign: 'center' }}>
+              <div style={{ marginTop: 24, textAlign: "center" }}>
                 <Space>
-                  <Button onClick={() => setCurrentStep(0)}>
-                    上一步
-                  </Button>
+                  <Button onClick={() => setCurrentStep(0)}>上一步</Button>
                   <Button
                     type="primary"
                     onClick={handleConfirmValidation}
@@ -316,11 +357,9 @@ const PrintPage = () => {
                 )}
               </Descriptions>
 
-              <div style={{ marginTop: 24, textAlign: 'center' }}>
+              <div style={{ marginTop: 24, textAlign: "center" }}>
                 <Space>
-                  <Button onClick={() => setCurrentStep(1)}>
-                    上一步
-                  </Button>
+                  <Button onClick={() => setCurrentStep(1)}>上一步</Button>
                   <Button
                     type="primary"
                     onClick={handlePrint}
@@ -359,18 +398,12 @@ const PrintPage = () => {
                 </Descriptions.Item>
               </Descriptions>
 
-              <div style={{ marginTop: 24, textAlign: 'center' }}>
+              <div style={{ marginTop: 24, textAlign: "center" }}>
                 <Space>
-                  <Button
-                    type="primary"
-                    onClick={handleReset}
-                  >
+                  <Button type="primary" onClick={handleReset}>
                     打印下一辆
                   </Button>
-                  <Button
-                    icon={<ReloadOutlined />}
-                    onClick={handleReprint}
-                  >
+                  <Button icon={<ReloadOutlined />} onClick={handleReprint}>
                     重打当前车辆
                   </Button>
                 </Space>

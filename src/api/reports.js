@@ -1,7 +1,7 @@
 /**
  * 统计报表相关API
  */
-import request from './request';
+import { get, post } from '../utils/fetch';
 
 /**
  * 根据VIN查询车辆打印历史记录
@@ -9,7 +9,7 @@ import request from './request';
  * @returns {Promise}
  */
 export const getVehiclePrintHistory = (vin) => {
-  return request.get('/report/print-history', { params: { vin } });
+  return get('/report/print-history', { vin });
 };
 
 /**
@@ -20,7 +20,7 @@ export const getVehiclePrintHistory = (vin) => {
  * @returns {Promise}
  */
 export const getOrderModifyInfo = (params) => {
-  return request.get('/report/order-modify', { params });
+  return get('/report/order-modify', params);
 };
 
 /**
@@ -31,7 +31,7 @@ export const getOrderModifyInfo = (params) => {
  * @returns {Promise}
  */
 export const getCertificateCount = (params) => {
-  return request.get('/report/certificate-count', { params });
+  return get('/report/certificate-count', params);
 };
 
 /**
@@ -43,7 +43,7 @@ export const getCertificateCount = (params) => {
  * @returns {Promise}
  */
 export const getOperatorPrintCount = (params) => {
-  return request.get('/report/operator-print-count', { params });
+  return get('/report/operator-print-count', params);
 };
 
 /**
@@ -55,7 +55,7 @@ export const getOperatorPrintCount = (params) => {
  * @returns {Promise}
  */
 export const getOperatorReprintCount = (params) => {
-  return request.get('/report/operator-reprint-count', { params });
+  return get('/report/operator-reprint-count', params);
 };
 
 /**
@@ -64,7 +64,7 @@ export const getOperatorReprintCount = (params) => {
  * @returns {Promise}
  */
 export const getCertificateInfo = (certificateNo) => {
-  return request.get('/report/certificate-info', { params: { certificateNo } });
+  return get('/report/certificate-info', { certificateNo });
 };
 
 /**
@@ -74,7 +74,7 @@ export const getCertificateInfo = (certificateNo) => {
  * @returns {Promise}
  */
 export const exportReport = (reportType, params) => {
-  return request.post(`/report/export/${reportType}`, params, {
+  return post(`/report/export/${reportType}`, params, {
     responseType: 'blob',
   });
 };

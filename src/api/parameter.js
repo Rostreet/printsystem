@@ -1,7 +1,7 @@
 /**
  * 参数表维护相关API
  */
-import request from './request';
+import { get, post, put, del } from "../utils/fetch";
 
 /**
  * 获取参数表列表
@@ -13,16 +13,17 @@ import request from './request';
  * @returns {Promise}
  */
 export const getParameterList = (params) => {
-  return request.get('/parameter', { params });
+  return get("/api/warehousingcar/getall", params);
 };
 
 /**
  * 根据车型代码获取参数详情
- * @param {string} modelCode - 车型代码
+ * @param {Object} params - 查询参数
+ * @param {string} params.modelCode - 车型代码
  * @returns {Promise}
  */
-export const getParameterByModelCode = (modelCode) => {
-  return request.get(`/parameter/${modelCode}`);
+export const getParameterByModelCode = (params) => {
+  return get(`/api/warehousingcar/getbymodelcode`, params);
 };
 
 /**
@@ -31,7 +32,7 @@ export const getParameterByModelCode = (modelCode) => {
  * @returns {Promise}
  */
 export const createParameter = (data) => {
-  return request.post('/parameter', data);
+  return post("/api/warehousingcar/add", data);
 };
 
 /**
@@ -40,8 +41,8 @@ export const createParameter = (data) => {
  * @param {Object} data - 参数数据
  * @returns {Promise}
  */
-export const updateParameter = (modelCode, data) => {
-  return request.put(`/parameter/${modelCode}`, data);
+export const updateParameter = (data) => {
+  return put(`/api/warehousingcar/update`, data);
 };
 
 /**
@@ -49,8 +50,8 @@ export const updateParameter = (modelCode, data) => {
  * @param {string} modelCode - 车型代码
  * @returns {Promise}
  */
-export const deleteParameter = (modelCode) => {
-  return request.delete(`/parameter/${modelCode}`);
+export const deleteParameter = (vin) => {
+  return del(`/api/warehousingcar/deletebyvin`, { vin });
 };
 
 /**
@@ -61,7 +62,7 @@ export const deleteParameter = (modelCode) => {
  * @returns {Promise}
  */
 export const copyParameter = (data) => {
-  return request.post('/parameter/copy', data);
+  return post("/parameter/copy", data);
 };
 
 /**
@@ -70,8 +71,8 @@ export const copyParameter = (data) => {
  * @returns {Promise}
  */
 export const exportParameterToExcel = (modelCode) => {
-  return request.get(`/parameter/${modelCode}/export`, {
-    responseType: 'blob',
+  return get(`/parameter/${modelCode}/export`, null, {
+    responseType: "blob",
   });
 };
 
@@ -81,7 +82,11 @@ export const exportParameterToExcel = (modelCode) => {
  * @returns {Promise}
  */
 export const batchExportParameters = (modelCodes) => {
-  return request.post('/parameter/batch-export', { modelCodes }, {
-    responseType: 'blob',
-  });
+  return post(
+    "/parameter/batch-export",
+    { modelCodes },
+    {
+      responseType: "blob",
+    }
+  );
 };

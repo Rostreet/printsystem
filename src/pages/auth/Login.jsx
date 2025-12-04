@@ -1,34 +1,38 @@
 /**
  * 登录页面
  */
-import { useState } from "react";
 import { Form, Input, Button, Card, message } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
 import { login } from "../../api/auth";
 import useUserStore from "../../store/userStore";
 import styles from "./Login.module.css";
 
 const Login = () => {
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login: loginUser } = useUserStore();
 
-  const handleSubmit = async (values) => {
-    try {
-      setLoading(true);
-      const response = await login(values);
-
+  // 使用 TanStack Query 的 useMutation 处理登录
+  const loginMutation = useMutation({
+    mutationFn: login,
+    onSuccess: (response) => {
       // 使用 Zustand 保存 token 和用户信息
-      loginUser(response.data.userInfo, response.data.token);
-
+      loginUser(response.data.user, response.data.token);
       message.success("登录成功");
       navigate("/");
-    } catch {
-      // 错误已在axios拦截器中处理
-    } finally {
-      setLoading(false);
-    }
+    },
+    onError: (error) => {
+      console.error("登录失败:", error);
+    },
+  });
+
+  const handleSubmit = (values) => {
+    const loginData = {
+      username: values.username,
+      password: values.password,
+    };
+    loginMutation.mutate(loginData);
   };
 
   return (
@@ -42,7 +46,7 @@ const Login = () => {
           className={styles.loginForm}
         >
           <Form.Item
-            name="operatorId"
+            name="username"
             rules={[{ required: true, message: "请输入账号" }]}
           >
             <Input prefix={<UserOutlined />} placeholder="请输入账号" />
@@ -63,7 +67,7 @@ const Login = () => {
               color="default"
               variant="solid"
               htmlType="submit"
-              loading={loading}
+              loading={loginMutation.isPending}
               block
             >
               登录

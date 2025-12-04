@@ -41,6 +41,10 @@ const router = createBrowserRouter([
         lazy: () => import("../pages/print/PrintPage"),
       },
       {
+        path: "reprint",
+        lazy: () => import("../pages/reprint/ReprintPage"),
+      },
+      {
         path: "reports",
         lazy: () => import("../pages/reports/ReportsPage"),
       },

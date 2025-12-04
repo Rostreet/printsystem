@@ -2,6 +2,7 @@
  * 参数表维护页面
  */
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   Table,
@@ -16,26 +17,32 @@ import {
   PlusOutlined,
   DeleteOutlined,
   ExportOutlined,
-  CopyOutlined,
+  RetweetOutlined,
   SearchOutlined,
   UndoOutlined,
-  EditOutlined,
 } from "@ant-design/icons";
 import {
   getParameterList,
   createParameter,
   updateParameter,
   deleteParameter,
+  getParameterByModelCode,
 } from "../../api/parameter";
 import ModelView from "./components/ModelView";
-
+import StatusChangeModal from "./components/StatusChangeModal";
+import GoPrintModal from "./components/goPrintModal";
+import { VEHICLE_STATUS_NAMES } from "../../constants";
 const ParameterList = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [searchParams, setSearchParams] = useState({});
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMode, setModalMode] = useState("add"); // add, edit, view
   const [currentRecord, setCurrentRecord] = useState(null);
+  const [statusModalVisible, setStatusModalVisible] = useState(false);
+  const [goPrintModalVisible, setGoPrintModalVisible] = useState(false);
+  const [currentStatusRecord, setCurrentStatusRecord] = useState(null);
 
   // 表格列定义
   const columns = [
@@ -45,6 +52,14 @@ const ParameterList = () => {
       key: "vehicleBrand",
       width: 100,
       fixed: "left",
+    },
+    {
+      title: "状态",
+      dataIndex: "type",
+      key: "type",
+      width: 120,
+      fixed: "left",
+      render: (value) => VEHICLE_STATUS_NAMES[value] || "-",
     },
     {
       title: "车型代码",
@@ -268,29 +283,13 @@ const ParameterList = () => {
       title: "操作",
       key: "action",
       fixed: "right",
-      width: 150,
+      width: 200,
       render: (_, record) => (
         <Space size="small">
-          <Button
-            type="link"
-            size="small"
-            icon={<CopyOutlined />}
-            onClick={() => handleView(record)}
-          >
-            查看
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-          >
-            编辑
-          </Button>
           <Popconfirm
             title="确认删除"
             description="删除后将无法恢复，确定要删除吗？"
-            onConfirm={() => handleDelete(record.modelCode)}
+            onConfirm={() => handleDelete(record.vin)}
             okText="确定"
             cancelText="取消"
           >
@@ -298,29 +297,60 @@ const ParameterList = () => {
               删除
             </Button>
           </Popconfirm>
+          <Button
+            type="link"
+            size="small"
+            info
+            onClick={() => {
+              if (record.type === "notqualified") {
+                message.warning("不合格车辆无法从此系统变更状态,请手动处理");
+                return;
+              }
+
+              setCurrentStatusRecord(record);
+
+              if (
+                ["chassis", "order", "reprint", "supplement", "whole"].includes(
+                  record.type
+                )
+              ) {
+                setGoPrintModalVisible(true);
+              } else {
+                setStatusModalVisible(true);
+              }
+            }}
+            icon={<RetweetOutlined />}
+          >
+            状态变化
+          </Button>
         </Space>
       ),
     },
   ];
 
   // 加载数据
-  const fetchData = useCallback(
-    async (params = {}) => {
-      try {
-        setLoading(true);
-        const response = await getParameterList({
-          ...searchParams,
-          ...params,
-        });
-        setDataSource(response.data.records || []);
-      } catch {
-        // 错误已在拦截器处理
-      } finally {
-        setLoading(false);
-      }
-    },
-    [searchParams]
-  );
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await getParameterList();
+      // 确保response.data是数组格式，如果是对象则用数组包裹
+      let data = Array.isArray(response.data)
+        ? response.data
+        : [response.data].filter(Boolean);
+
+      // 确保每个数据项都包含status字段，默认值为"合格"
+      data = data.map((item) => ({
+        ...item,
+        type: item.type || "-",
+      }));
+
+      setDataSource(data);
+    } catch {
+      // 错误已在拦截器处理
+    } finally {
+      setLoading(false);
+    }
+  }, [searchParams]);
 
   // 初始加载
   useEffect(() => {
@@ -328,28 +358,33 @@ const ParameterList = () => {
   }, [fetchData]);
 
   // 搜索
-  const handleSearch = (values) => {
-    setSearchParams(values);
-    fetchData(values);
+  const handleSearch = async (values) => {
+    try {
+      setLoading(true);
+      const response = await getParameterByModelCode(values);
+      // 确保response.data是数组格式，如果是对象则用数组包裹
+      let data = Array.isArray(response.data)
+        ? response.data
+        : [response.data].filter(Boolean);
+
+      // 确保每个数据项都包含status字段，默认值为"合格"
+      data = data.map((item) => ({
+        ...item,
+        status: item.type || "-",
+      }));
+
+      setDataSource(data);
+    } catch {
+      // 错误已在拦截器处理
+    } finally {
+      setLoading(false);
+    }
   };
 
   // 重置搜索
   const handleReset = () => {
     setSearchParams({});
     fetchData({});
-  };
-
-  const handleView = (record) => {
-    setModalMode("view");
-    setCurrentRecord(record);
-    setModalVisible(true);
-  };
-
-  // 编辑
-  const handleEdit = (record) => {
-    setModalMode("edit");
-    setCurrentRecord(record);
-    setModalVisible(true);
   };
 
   // 新增
@@ -360,9 +395,9 @@ const ParameterList = () => {
   };
 
   // 删除
-  const handleDelete = async (modelCode) => {
+  const handleDelete = async (vin) => {
     try {
-      await deleteParameter(modelCode);
+      await deleteParameter(vin);
       message.success("删除成功");
       fetchData();
     } catch {
@@ -377,7 +412,21 @@ const ParameterList = () => {
       // 获取所有参数数据（不分页）
       const response = await getParameterList();
 
-      const allData = response.data.records || [];
+      // 处理不同的响应数据格式
+      let allData = [];
+      if (response.data) {
+        if (Array.isArray(response.data)) {
+          allData = response.data;
+        } else if (
+          response.data.records &&
+          Array.isArray(response.data.records)
+        ) {
+          allData = response.data.records;
+        } else {
+          // 如果是单个对象，用数组包裹
+          allData = [response.data].filter(Boolean);
+        }
+      }
 
       if (allData.length === 0) {
         message.warning("没有数据可导出");
@@ -452,9 +501,6 @@ const ParameterList = () => {
       if (modalMode === "add") {
         await createParameter(values);
         message.success("新增成功");
-      } else if (modalMode === "edit") {
-        await updateParameter(currentRecord.modelCode, values);
-        message.success("更新成功");
       }
 
       setModalVisible(false);
@@ -464,10 +510,68 @@ const ParameterList = () => {
     }
   };
 
+  // 状态变更处理
+  const handleStatusChange = async (record, values) => {
+    try {
+      const type = values.type;
+      const vin = values.vin;
+      // 更新记录状态
+      const updatedRecord = {
+        vin: vin,
+        type: type,
+      };
+
+      // 保存更新后的状态到后端
+      await updateParameter(updatedRecord);
+
+      // 关闭弹窗
+      setStatusModalVisible(false);
+
+      // 重新加载数据
+      fetchData();
+
+      // 根据装套类型进行不同的处理和跳转
+      switch (type) {
+        case "reprint":
+          // 重打：跳转到补打页面
+          message.success("跳转到合格证补打页面（重打）");
+          navigate(`/reprint?vin=${values.vin}&vsn=${values.vsnCode}`);
+          break;
+
+        case "supplement":
+        case "chassis":
+        case "order":
+        case "qualified": {
+          // 其他情况：跳转到打印页面
+          const typeMap = {
+            chassis: "二类底盘",
+            order: "订单车",
+            qualified: "合格",
+          };
+          message.success(`跳转到合格证打印页面（${typeMap[type]}）`);
+          navigate(
+            `/print?vin=${values.vin}&vsn=${record.vsnCode}&type=${type}`
+          );
+          break;
+        }
+
+        case "notqualified":
+          message.info("车辆状态已更新为不合格");
+          break;
+
+        default:
+          message.warning("未知的装套类型");
+          break;
+      }
+    } catch {
+      message.error("状态更新失败");
+    }
+  };
+
   return (
     <div className="parameter-list">
       <Card>
-        <Space direction="vertical" size="large" style={{ width: "80%" }}>
+        <Space direction="vertical" size="large" style={{ width: "100%" }}>
           {/* 搜索区域 */}
           <Form layout="inline" onFinish={handleSearch}>
             <Form.Item name="modelCode">
@@ -525,6 +629,21 @@ const ParameterList = () => {
         allModels={dataSource}
         onCancel={() => setModalVisible(false)}
         onSubmit={handleSubmit}
+      />
+
+      {/* 状态变更模态框 */}
+      <StatusChangeModal
+        open={statusModalVisible}
+        record={currentStatusRecord}
+        onCancel={() => setStatusModalVisible(false)}
+        onStatusChange={handleStatusChange}
+      />
+
+      {/* 跳转到打印页面 */}
+      <GoPrintModal
+        open={goPrintModalVisible}
+        record={currentStatusRecord}
+        onCancel={() => setGoPrintModalVisible(false)}
       />
     </div>
   );

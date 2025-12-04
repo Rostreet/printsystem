@@ -1,7 +1,7 @@
 /**
  * 用户认证相关API
  */
-import request from './request';
+import { get, post, put } from "../utils/fetch";
 
 /**
  * 用户登录
@@ -11,7 +11,8 @@ import request from './request';
  * @returns {Promise}
  */
 export const login = (data) => {
-  return request.post('/user/login', data);
+  console.log("登录参数:", data);
+  return post("/api/user/login", data);
 };
 
 /**
@@ -19,7 +20,7 @@ export const login = (data) => {
  * @returns {Promise}
  */
 export const logout = () => {
-  return request.post('/user/logout');
+  return post("/user/logout");
 };
 
 /**
@@ -27,7 +28,7 @@ export const logout = () => {
  * @returns {Promise}
  */
 export const getCurrentUser = () => {
-  return request.get('/user/current');
+  return get("/user/current");
 };
 
 /**
@@ -38,5 +39,5 @@ export const getCurrentUser = () => {
  * @returns {Promise}
  */
 export const changePassword = (data) => {
-  return request.put('/user/password', data);
+  return put("/user/password", data);
 };
