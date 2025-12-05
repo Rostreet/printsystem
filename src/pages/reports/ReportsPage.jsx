@@ -356,7 +356,6 @@ const ReportsPage = () => {
           key: "certNo",
         },
         { title: "VIN", dataIndex: "vin", key: "vin" },
-        { title: "品种代码", dataIndex: "varietyCode", key: "varietyCode" },
         {
           title: "打印时间",
           dataIndex: "printTime",
